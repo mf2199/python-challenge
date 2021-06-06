@@ -90,7 +90,14 @@ class Project:
 
         if len(paths) >= 2:
             paths = paths[1:]
-            paths.remove('resources')
+
+            # TODO: necessary to avoid errors running `test_reporting.py` as-is
+            # paths.remove('resources')
+            try:
+                paths.remove('resources')
+            except ValueError:
+                pass
+
             return paths, ext
 
         return None, None

@@ -1,9 +1,9 @@
 """Service models and factories."""
+import json
 import re
 import logging
 from copy import copy
 from typing import Generator, List, Any
-
 
 # Logging setup
 logger = logging.getLogger(__name__)
@@ -14,8 +14,8 @@ logger.setLevel(logging.DEBUG)
 class JSONManifest:
     """JSONManifest object.
 
-    This objects as a container for a json document. JSONManifest instances,
-    initialized with a python dictionary and a list of rules, will act as an
+    This objects as a container for a JSON document. JSONManifest instances,
+    initialized with a Python dictionary and a list of rules, will act as an
     iterator for the resulting combination of the two documents.
 
     The logic is simple: for every rule from the passed-in list of rules,
@@ -55,14 +55,13 @@ class JSONManifest:
         return copy(self._rules)
 
     @property
-    def items(self) -> list:
+    def items(self) -> dict:
         """Return a dictionary of the mapped data, per the given rules."""
         return dict(iter(self))
 
     def __init__(self, data: dict = None, rules: list = None):
-        data = {} if data is None else data
-        rules = [] if rules is None else rules
-        self._data, self._rules = data, rules
+        self._data = data or {}
+        self._rules = rules or []
 
         # Flatten source data for faster parsing
         self._fdata = dict(self.flatten(self._data))
@@ -94,7 +93,7 @@ class JSONManifest:
         """
 
         def iter_child(cdata: Any, keys: List[str] = None):
-            keys = [] if keys is None else keys
+            keys = keys or []
 
             if isinstance(cdata, dict):
                 for key, value in cdata.items():
@@ -115,7 +114,7 @@ class JSONManifest:
 class JSONFactory:
     """JSONFactory object.
 
-    This class acts as a factory ontop of JSONManifest objects to
+    This class acts as a factory on top of JSONManifest objects to
     reconstitute all mapped values back into a valid JSON document, which is
     called the "Projection" or the "Projected JSON".
 
@@ -281,16 +280,16 @@ class JSONFactory:
                 conditions = [
                     tuple(
                         t.strip()
-                        .replace('@.', '')
-                        .replace('\'', '')
-                        .replace('"', '')
-                        .strip()
+                            .replace('@.', '')
+                            .replace('\'', '')
+                            .replace('"', '')
+                            .strip()
                         for t in s.strip().split('==')
                     )
                     for s in query[2:-1].split('&&')
                 ]
 
-                if not key in reference:
+                if key not in reference:
                     reference[key] = []
 
                 indices = []
@@ -322,7 +321,7 @@ class JSONFactory:
                         )
 
             elif index is not None:
-                if not key in reference:
+                if key not in reference:
                     reference[key] = []
 
                 rlen = len(reference[key])
@@ -372,5 +371,13 @@ class JSONFactory:
 
         for path, value in queries:
             self.insert_query(path, value, record)
+
+        for report in record.get('reports', []):
+            if report["title"] == "Residences Report":
+                unique_residences = {}
+                for residence in report["residences"]:
+                    key = frozenset((k, v) for k, v in residence.items())
+                    unique_residences[key] = residence
+                report["residences"] = [r for r in unique_residences.values()]
 
         return record
