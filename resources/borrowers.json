@@ -14,5 +14,9 @@
     {
         "source": "$.applications[0].coborrower.lastName",
         "target": "$.reports[?(@.title == 'Borrowers Report')].borrowers[1].last_name"
+    },
+    {
+        "source": "$.applications[0].borrower.shared_address",
+        "target": "$.reports[?(@.title == 'Borrowers Report')].shared_address"
     }
 ]

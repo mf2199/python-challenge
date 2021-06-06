@@ -63,8 +63,29 @@ class JSONManifest:
         self._data = data or {}
         self._rules = rules or []
 
+        logger.info(f"LOAN DATA:\n{json.dumps(self._data, indent=2)}")
+        for app in self._data["applications"]:
+            # CC-01
+            addresses = []
+            for person in app.keys():
+                address = frozenset(
+                    (k, v) for k, v in app[person]["mailingAddress"].items()
+                )
+                if address in addresses:
+                    del app[person]["mailingAddress"]
+                else:
+                    addresses.append(address)
+
+            # CC-02
+            shared_address = len(app.keys()) > len(addresses)
+            for person in app.keys():
+                app[person]["shared_address"] = shared_address
+                logger.info(f"PERSON:\n{json.dumps(app[person], indent=2)}")
+
         # Flatten source data for faster parsing
         self._fdata = dict(self.flatten(self._data))
+
+        logger.info(f"MANIFEST ITEMS:\n{json.dumps(self._fdata, indent=2)}")
 
     def __iter__(self):
         """Iterate on the rules and items, yielding only those which match."""
@@ -372,12 +393,21 @@ class JSONFactory:
         for path, value in queries:
             self.insert_query(path, value, record)
 
-        for report in record.get('reports', []):
-            if report["title"] == "Residences Report":
-                unique_residences = {}
-                for residence in report["residences"]:
-                    key = frozenset((k, v) for k, v in residence.items())
-                    unique_residences[key] = residence
-                report["residences"] = [r for r in unique_residences.values()]
+        # # [FTR]
+        # num_addresses = 0
+        #
+        # # CC-01
+        # for report in record.get('reports', []):
+        #     if report["title"] == "Residences Report":
+        #         # unique_residences = {}
+        #         # for residence in report["residences"]:
+        #         #     key = frozenset((k, v) for k, v in residence.items())
+        #         #     unique_residences[key] = residence
+        #         # report["residences"] = [r for r in unique_residences.values()]
+        #         num_addresses = len(report["residences"])
+        #
+        # for report in record.get('reports', []):
+        #     if report["title"] == "Borrowers Report":
+        #         report["shared_address"] = num_addresses < len(report["borrowers"])
 
         return record
