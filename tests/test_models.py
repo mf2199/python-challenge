@@ -56,12 +56,6 @@ class TestHandler(unittest.TestCase):
         return detail
 
     def test_ftr_cc_01_unique_residences(self):
-        # with open(os.path.join("tests", "loandata.json")) as file:
-        #     event = self._generate_event(json.load(file))
-        #     for record in event["Records"]:
-        #         record["detail"] = json.loads(record["detail"])
-        #     logging.info(f"EVENT:\n{json.dumps(event, indent=2)}")
-
         with open(LOAN_DATA_FILE) as file:
             event = self._generate_event(json.load(file))
 
