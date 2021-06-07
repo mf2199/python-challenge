@@ -1,9 +1,8 @@
 """Service models and factories."""
-import re
 import logging
+import re
 from copy import copy
-from typing import Generator, List, Any
-
+from typing import Any, Generator, List
 
 # Logging setup
 logger = logging.getLogger(__name__)
@@ -14,8 +13,8 @@ logger.setLevel(logging.DEBUG)
 class JSONManifest:
     """JSONManifest object.
 
-    This objects as a container for a json document. JSONManifest instances,
-    initialized with a python dictionary and a list of rules, will act as an
+    This objects as a container for a JSON document. JSONManifest instances,
+    initialized with a Python dictionary and a list of rules, will act as an
     iterator for the resulting combination of the two documents.
 
     The logic is simple: for every rule from the passed-in list of rules,
@@ -55,14 +54,31 @@ class JSONManifest:
         return copy(self._rules)
 
     @property
-    def items(self) -> list:
+    def items(self) -> dict:
         """Return a dictionary of the mapped data, per the given rules."""
         return dict(iter(self))
 
     def __init__(self, data: dict = None, rules: list = None):
-        data = {} if data is None else data
-        rules = [] if rules is None else rules
-        self._data, self._rules = data, rules
+        self._data = data or {}
+        self._rules = rules or []
+
+        # [FTR]
+        for app in self._data["applications"]:
+            # CC-01
+            address_keys = []
+            for person in app.keys():
+                key = frozenset(
+                    (k, v) for k, v in app[person]["mailingAddress"].items()
+                )
+                if key in address_keys:
+                    del app[person]["mailingAddress"]
+                else:
+                    address_keys.append(key)
+
+            # CC-02
+            shared_address = len(app.keys()) > len(address_keys)
+            for person in app.keys():
+                app[person]["shared_address"] = shared_address
 
         # Flatten source data for faster parsing
         self._fdata = dict(self.flatten(self._data))
@@ -71,8 +87,8 @@ class JSONManifest:
         """Iterate on the rules and items, yielding only those which match."""
         for rule in self._rules:
             for path, value in self._fdata.items():
-                if rule.get('source') == path:
-                    yield rule.get('target'), value
+                if bool(re.match(rule.get("source"), path)):
+                    yield rule.get("target"), value
 
     # Static methods
     @staticmethod
@@ -94,7 +110,7 @@ class JSONManifest:
         """
 
         def iter_child(cdata: Any, keys: List[str] = None):
-            keys = [] if keys is None else keys
+            keys = keys or []
 
             if isinstance(cdata, dict):
                 for key, value in cdata.items():
@@ -102,20 +118,20 @@ class JSONManifest:
 
             elif isinstance(cdata, list):
                 for idx, value in enumerate(cdata):
-                    key = f'{keys[-1]}[{str(idx)}]'
+                    key = f"{keys[-1]}[{str(idx)}]"
                     yield from iter_child(value, keys[:-1] + [key])
 
             else:
-                yield '.'.join(keys), cdata
+                yield ".".join(keys), cdata
 
-        yield from iter_child(data, ['$'])
+        yield from iter_child(data, ["$"])
 
 
 # Factory objects
 class JSONFactory:
     """JSONFactory object.
 
-    This class acts as a factory ontop of JSONManifest objects to
+    This class acts as a factory on top of JSONManifest objects to
     reconstitute all mapped values back into a valid JSON document, which is
     called the "Projection" or the "Projected JSON".
 
@@ -166,7 +182,7 @@ class JSONFactory:
         """
         matches = []
         for match in cls.RE_PAT.findall(path):
-            match = [_ if _ != '' else None for _ in match]
+            match = [_ if _ else None for _ in match]
             matches.append(dict(zip(cls.RE_IDX, match)))
         return matches
 
@@ -195,8 +211,8 @@ class JSONFactory:
             matches = re.search(r"\[(?P<index>\d+)\]", key)
             if matches:
                 return (
-                    key.replace(matches.group(), ''),
-                    int(matches.group('index')),
+                    key.replace(matches.group(), ""),
+                    int(matches.group("index")),
                 )
             return None, None
 
@@ -212,7 +228,7 @@ class JSONFactory:
 
             if index:
                 key, idx = index
-                if not key in reference:
+                if key not in reference:
                     reference[key] = []
 
                 rlen = len(reference[key])
@@ -229,8 +245,8 @@ class JSONFactory:
 
             return reference
 
-        path_keys = path.split('.')
-        if path_keys[0] == '$':
+        path_keys = path.split(".")
+        if path_keys[0] == "$":
             path_keys.pop(0)
 
         record = _iter(path_keys, record)
@@ -272,25 +288,27 @@ class JSONFactory:
                 index = int(index)
 
             # 4 possible cases:
-            #    (a) query w/ index :     process query and update only that index from result
+            #    (a) query w/ index :     process query and update only that
+            #                             index from result
             #    (b) query w/o index: :   process query and update all values
             #    (c) just index :         grab just that index
-            #    (d) only a key given :   treat like a dict key and update that value
+            #    (d) only a key given :   treat like a dict key and update that
+            #                             value
 
             if query is not None:
                 conditions = [
                     tuple(
                         t.strip()
-                        .replace('@.', '')
-                        .replace('\'', '')
-                        .replace('"', '')
+                        .replace("@.", "")
+                        .replace("'", "")
+                        .replace('"', "")
                         .strip()
-                        for t in s.strip().split('==')
+                        for t in s.strip().split("==")
                     )
-                    for s in query[2:-1].split('&&')
+                    for s in query[2:-1].split("&&")
                 ]
 
-                if not key in reference:
+                if key not in reference:
                     reference[key] = []
 
                 indices = []
@@ -322,7 +340,7 @@ class JSONFactory:
                         )
 
             elif index is not None:
-                if not key in reference:
+                if key not in reference:
                     reference[key] = []
 
                 rlen = len(reference[key])
@@ -364,7 +382,7 @@ class JSONFactory:
         for path, value in self._manifest:
 
             # Prioritize non-queries before queries
-            if '?' in path:
+            if "?" in path:
                 queries.append((path, value))
                 continue
 
