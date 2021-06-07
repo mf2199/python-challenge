@@ -102,5 +102,6 @@ class TestHandler(unittest.TestCase):
         response = main(event)
         for report in response["reports"]:
             if report["title"] == "Borrowers Report":
-                # self.assertEqual(len(report["borrowers"]), 2)
+                # TODO: Assert proper length of the "Borrowers Report" after
+                #  proper reorganization of the reports' structure
                 self.assertTrue(True)
