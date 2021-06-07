@@ -61,9 +61,7 @@ class Project:
         name = ".".join(roots)
 
         logger.debug(
-            "Processing resource %s at %s.",
-            ".".join([name, ext]),
-            path,
+            "Processing resource %s at %s.", ".".join([name, ext]), path,
         )
 
         # Load resource
@@ -73,9 +71,7 @@ class Project:
                 resources.extend(json.load(rules))
         except Exception as error:  # pylint: disable = broad-except
             logger.error(
-                "Service could not load %s due to %s",
-                str(path),
-                str(error),
+                "Service could not load %s due to %s", str(path), str(error),
             )
         return name, resources
 

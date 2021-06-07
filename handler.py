@@ -31,7 +31,8 @@ def main(event, context=None):  # pylint: disable=unused-argument
     Parameters
     ----------
     event : dict
-        The Eventbridge event payload with loandata for reporting as its detail.
+        The EventBridge event payload with loan data for reporting as its
+        detail.
     context : LambdaContext
         The lambda context object (for Lambda use only).
 

@@ -1,5 +1,4 @@
 """Service models and factories."""
-import json
 import logging
 import re
 from copy import copy
@@ -229,7 +228,7 @@ class JSONFactory:
 
             if index:
                 key, idx = index
-                if not key in reference:
+                if key not in reference:
                     reference[key] = []
 
                 rlen = len(reference[key])
@@ -289,10 +288,12 @@ class JSONFactory:
                 index = int(index)
 
             # 4 possible cases:
-            #    (a) query w/ index :     process query and update only that index from result
+            #    (a) query w/ index :     process query and update only that
+            #                             index from result
             #    (b) query w/o index: :   process query and update all values
             #    (c) just index :         grab just that index
-            #    (d) only a key given :   treat like a dict key and update that value
+            #    (d) only a key given :   treat like a dict key and update that
+            #                             value
 
             if query is not None:
                 conditions = [

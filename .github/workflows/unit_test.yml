@@ -1,0 +1,40 @@
+name: Tests Runner
+
+# Run this workflow every time a new commit pushed to the repository
+on: push
+
+jobs:
+  # The job key - displayed as the job name when a job name is not provided
+  test:
+    # The name of the job to be displayed
+    name: Lint, style, tests, and coverage
+    # Sets the type of machine to run on
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks out a copy of your repository on the ubuntu-latest machine
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Extracts the name of the branch
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+
+      # Sets up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      # Runs tests
+      - name: Run tests
+        run: |
+          echo Processing branch: ${{ steps.extract_branch.outputs.branch }}
+          echo Installing required packages...
+          python -m pip install -U pip
+          python -m pip install -r requirements.txt
+
+          echo Running unit tests...
+          nox

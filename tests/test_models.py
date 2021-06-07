@@ -99,7 +99,9 @@ class TestHandler(unittest.TestCase):
     def test_ftr_cc_03_multiple_applications(self):
         with open(LOAN_DATA_FILE) as file:
             event = self._generate_event(json.load(file))
-        event = self._generate_event(detail=self._randomize(event, app_count=5))
+        event = self._generate_event(
+            detail=self._randomize(event, app_count=5)
+        )
         response = main(event)
         for report in response["reports"]:
             if report["title"] == "Borrowers Report":
