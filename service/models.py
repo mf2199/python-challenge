@@ -63,24 +63,25 @@ class JSONManifest:
         self._data = data or {}
         self._rules = rules or []
 
-        logger.info(f"LOAN DATA:\n{json.dumps(self._data, indent=2)}")
+        # [FTR]
+        # logger.info(f"LOAN DATA:\n{json.dumps(self._data, indent=2)}")
         for app in self._data["applications"]:
             # CC-01
-            addresses = []
+            address_keys = []
             for person in app.keys():
-                address = frozenset(
+                key = frozenset(
                     (k, v) for k, v in app[person]["mailingAddress"].items()
                 )
-                if address in addresses:
+                if key in address_keys:
                     del app[person]["mailingAddress"]
                 else:
-                    addresses.append(address)
+                    address_keys.append(key)
 
             # CC-02
-            shared_address = len(app.keys()) > len(addresses)
+            shared_address = len(app.keys()) > len(address_keys)
             for person in app.keys():
                 app[person]["shared_address"] = shared_address
-                logger.info(f"PERSON:\n{json.dumps(app[person], indent=2)}")
+                # logger.info(f"PERSON:\n{json.dumps(app[person], indent=2)}")
 
         # Flatten source data for faster parsing
         self._fdata = dict(self.flatten(self._data))
@@ -91,7 +92,13 @@ class JSONManifest:
         """Iterate on the rules and items, yielding only those which match."""
         for rule in self._rules:
             for path, value in self._fdata.items():
-                if rule.get('source') == path:
+                # logger.info('')
+                # logger.info(f"SOURCE: {rule.get('source')}")
+                # logger.info(f"PATH__: {path}")
+                # if rule.get('source') == path:
+                if bool(re.match(rule.get('source'), path)):
+                    # logger.info(f'MATCHED: {rule.get("target")} <> {path} <> {value}')
+                    # logger.info(f'MATCHED: {rule.get("target")} <> {value}')
                     yield rule.get('target'), value
 
     # Static methods
@@ -118,14 +125,18 @@ class JSONManifest:
 
             if isinstance(cdata, dict):
                 for key, value in cdata.items():
+                    # logger.info(f"KEYS: {keys + [key]}")
                     yield from iter_child(value, keys + [key])
 
             elif isinstance(cdata, list):
+                # logger.info(f"CDATA:\n{json.dumps(cdata, indent=2)}")
                 for idx, value in enumerate(cdata):
                     key = f'{keys[-1]}[{str(idx)}]'
+                    # logger.info(f"KEY: {key}")
                     yield from iter_child(value, keys[:-1] + [key])
 
             else:
+                # logger.info(f"__KEY__: {'.'.join(keys)}")
                 yield '.'.join(keys), cdata
 
         yield from iter_child(data, ['$'])
@@ -186,7 +197,7 @@ class JSONFactory:
         """
         matches = []
         for match in cls.RE_PAT.findall(path):
-            match = [_ if _ != '' else None for _ in match]
+            match = [_ if _ else None for _ in match]
             matches.append(dict(zip(cls.RE_IDX, match)))
         return matches
 
@@ -309,14 +320,19 @@ class JSONFactory:
                     )
                     for s in query[2:-1].split('&&')
                 ]
+                logger.info(f"CONDITIONS: {conditions}")
 
                 if key not in reference:
                     reference[key] = []
+
+                logger.info(f"REFERENCE KEY: {reference[key]}")
 
                 indices = []
                 for i, ele in enumerate(reference[key]):
                     if all(ele.get(k) == v for k, v in conditions):
                         indices.append(i)
+
+                logger.info(f"INDICES: {indices}")
 
                 if index is not None:
                     rlen = len(indices)
@@ -370,6 +386,8 @@ class JSONFactory:
     def __init__(self, manifest: JSONManifest):
         self._manifest = manifest
 
+        # logger.info(f"JSON MANIFEST:\n{json.dumps(self._manifest.items, indent=2)}")
+
     # Instance methods
     def get_projection(self):
         """Generate the projection for the given manifest.
@@ -386,28 +404,14 @@ class JSONFactory:
             # Prioritize non-queries before queries
             if '?' in path:
                 queries.append((path, value))
+                logger.info(f"PATH, VALUE: {path} | {value}")
                 continue
 
+            logger.info(f"PATH, VALUE, RECORD: {path} | {value} | {record}")
             self.insert_value(path, value, record)
 
         for path, value in queries:
+            logger.info(f"QUERY PATH, VALUE: {path} | {value}")
             self.insert_query(path, value, record)
-
-        # # [FTR]
-        # num_addresses = 0
-        #
-        # # CC-01
-        # for report in record.get('reports', []):
-        #     if report["title"] == "Residences Report":
-        #         # unique_residences = {}
-        #         # for residence in report["residences"]:
-        #         #     key = frozenset((k, v) for k, v in residence.items())
-        #         #     unique_residences[key] = residence
-        #         # report["residences"] = [r for r in unique_residences.values()]
-        #         num_addresses = len(report["residences"])
-        #
-        # for report in record.get('reports', []):
-        #     if report["title"] == "Borrowers Report":
-        #         report["shared_address"] = num_addresses < len(report["borrowers"])
 
         return record

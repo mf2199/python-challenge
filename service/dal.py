@@ -92,11 +92,8 @@ class Project:
             paths = paths[1:]
 
             # TODO: necessary to avoid errors running `test_reporting.py` as-is
-            # paths.remove('resources')
-            try:
+            if "resources" in paths:
                 paths.remove('resources')
-            except ValueError:
-                pass
 
             return paths, ext
 

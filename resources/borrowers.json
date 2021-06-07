@@ -1,22 +1,22 @@
 [
     {
-        "source": "$.applications[0].borrower.firstName",
+        "source": "\\$.applications\\[[0-9]+\\].borrower.firstName",
         "target": "$.reports[?(@.title == 'Borrowers Report')].borrowers[0].first_name"
     },
     {
-        "source": "$.applications[0].borrower.lastName",
+        "source": "\\$.applications\\[[0-9]+\\].borrower.lastName",
         "target": "$.reports[?(@.title == 'Borrowers Report')].borrowers[0].last_name"
     },
     {
-        "source": "$.applications[0].coborrower.firstName",
+        "source": "\\$.applications\\[[0-9]+\\].coborrower.firstName",
         "target": "$.reports[?(@.title == 'Borrowers Report')].borrowers[1].first_name"
     },
     {
-        "source": "$.applications[0].coborrower.lastName",
+        "source": "\\$.applications\\[[0-9]+\\].coborrower.lastName",
         "target": "$.reports[?(@.title == 'Borrowers Report')].borrowers[1].last_name"
     },
     {
-        "source": "$.applications[0].borrower.shared_address",
+        "source": "\\$.applications[\\[[0-9]+\\].borrower.shared_address",
         "target": "$.reports[?(@.title == 'Borrowers Report')].shared_address"
     }
 ]
