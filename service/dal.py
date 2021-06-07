@@ -1,10 +1,9 @@
 """Service data access layer (dal)."""
-import os
 import json
 import logging
+import os
 from copy import copy
 from pathlib import Path
-
 
 # Logging setup
 logger = logging.getLogger(__name__)
@@ -40,13 +39,13 @@ class Project:
 
         # Load all associated resources
         self._resources = {}
-        resources_path = self.root / 'resources'
+        resources_path = self.root / "resources"
         for root, _, files in os.walk(resources_path):
             for file in files:
                 # Skip all non-json documents
-                if '.json' not in file:
+                if ".json" not in file:
                     logger.warning(
-                        'Service has received a non-valid json document: %s.',
+                        "Service has received a non-valid json document: %s.",
                         file,
                     )
                     continue
@@ -59,11 +58,11 @@ class Project:
         """Load given file as resource."""
         path = os.path.join(root, file)
         roots, ext = self._parse_roots_ext(root, file)
-        name = '.'.join(roots)
+        name = ".".join(roots)
 
         logger.debug(
-            'Processing resource %s at %s.',
-            '.'.join([name, ext]),
+            "Processing resource %s at %s.",
+            ".".join([name, ext]),
             path,
         )
 
@@ -74,7 +73,7 @@ class Project:
                 resources.extend(json.load(rules))
         except Exception as error:  # pylint: disable = broad-except
             logger.error(
-                'Service could not load %s due to %s',
+                "Service could not load %s due to %s",
                 str(path),
                 str(error),
             )
@@ -82,9 +81,9 @@ class Project:
 
     def _parse_roots_ext(self, path, file):
         """Parse given file for name and qualified extension."""
-        paths = str(path).replace(str(self.root), '').split('/')
-        name, *exts = file.split('.')
-        ext = '.'.join(exts) or ''
+        paths = str(path).replace(str(self.root), "").split("/")
+        name, *exts = file.split(".")
+        ext = ".".join(exts) or ""
 
         paths.append(name)
 
@@ -93,7 +92,7 @@ class Project:
 
             # TODO: necessary to avoid errors running `test_reporting.py` as-is
             if "resources" in paths:
-                paths.remove('resources')
+                paths.remove("resources")
 
             return paths, ext
 

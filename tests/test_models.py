@@ -6,6 +6,7 @@ import os
 import unittest
 
 from faker import Faker
+
 from handler import main
 
 logging.getLogger().setLevel(logging.INFO)
@@ -23,11 +24,11 @@ class TestHandler(unittest.TestCase):
         """
         detail = detail or {}
         return {
-            'Records': [
+            "Records": [
                 {
-                    'source': 'testing.local',
-                    'detail-type': 'Local Testing',
-                    'detail': json.dumps(detail),
+                    "source": "testing.local",
+                    "detail-type": "Local Testing",
+                    "detail": json.dumps(detail),
                 }
             ]
         }

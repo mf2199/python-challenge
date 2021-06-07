@@ -1,9 +1,9 @@
 """Service models and factories."""
 import json
-import re
 import logging
+import re
 from copy import copy
-from typing import Generator, List, Any
+from typing import Any, Generator, List
 
 # Logging setup
 logger = logging.getLogger(__name__)
@@ -88,8 +88,8 @@ class JSONManifest:
         """Iterate on the rules and items, yielding only those which match."""
         for rule in self._rules:
             for path, value in self._fdata.items():
-                if bool(re.match(rule.get('source'), path)):
-                    yield rule.get('target'), value
+                if bool(re.match(rule.get("source"), path)):
+                    yield rule.get("target"), value
 
     # Static methods
     @staticmethod
@@ -119,13 +119,13 @@ class JSONManifest:
 
             elif isinstance(cdata, list):
                 for idx, value in enumerate(cdata):
-                    key = f'{keys[-1]}[{str(idx)}]'
+                    key = f"{keys[-1]}[{str(idx)}]"
                     yield from iter_child(value, keys[:-1] + [key])
 
             else:
-                yield '.'.join(keys), cdata
+                yield ".".join(keys), cdata
 
-        yield from iter_child(data, ['$'])
+        yield from iter_child(data, ["$"])
 
 
 # Factory objects
@@ -212,8 +212,8 @@ class JSONFactory:
             matches = re.search(r"\[(?P<index>\d+)\]", key)
             if matches:
                 return (
-                    key.replace(matches.group(), ''),
-                    int(matches.group('index')),
+                    key.replace(matches.group(), ""),
+                    int(matches.group("index")),
                 )
             return None, None
 
@@ -246,8 +246,8 @@ class JSONFactory:
 
             return reference
 
-        path_keys = path.split('.')
-        if path_keys[0] == '$':
+        path_keys = path.split(".")
+        if path_keys[0] == "$":
             path_keys.pop(0)
 
         record = _iter(path_keys, record)
@@ -298,13 +298,13 @@ class JSONFactory:
                 conditions = [
                     tuple(
                         t.strip()
-                            .replace('@.', '')
-                            .replace('\'', '')
-                            .replace('"', '')
-                            .strip()
-                        for t in s.strip().split('==')
+                        .replace("@.", "")
+                        .replace("'", "")
+                        .replace('"', "")
+                        .strip()
+                        for t in s.strip().split("==")
                     )
-                    for s in query[2:-1].split('&&')
+                    for s in query[2:-1].split("&&")
                 ]
 
                 if key not in reference:
@@ -381,7 +381,7 @@ class JSONFactory:
         for path, value in self._manifest:
 
             # Prioritize non-queries before queries
-            if '?' in path:
+            if "?" in path:
                 queries.append((path, value))
                 continue
 

@@ -2,9 +2,9 @@
 
 # from __future__ import absolute_import
 
-import nox
 import os
 
+import nox
 
 DEFAULT_PYTHON_VERSION = "3.8"
 UNIT_TEST_PYTHON_VERSIONS = ["3.8"]
