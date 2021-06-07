@@ -61,7 +61,6 @@ class TestHandler(unittest.TestCase):
 
         response = main(event)
 
-        # logging.info('REPORTS: %s', json.dumps(response, indent=2))
         for report in response["reports"]:
             if report["title"] == "Residences Report":
                 self.assertEqual(len(report["residences"]), 1)
