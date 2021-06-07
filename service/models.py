@@ -64,7 +64,6 @@ class JSONManifest:
         self._rules = rules or []
 
         # [FTR]
-        # logger.info(f"LOAN DATA:\n{json.dumps(self._data, indent=2)}")
         for app in self._data["applications"]:
             # CC-01
             address_keys = []
@@ -81,24 +80,15 @@ class JSONManifest:
             shared_address = len(app.keys()) > len(address_keys)
             for person in app.keys():
                 app[person]["shared_address"] = shared_address
-                # logger.info(f"PERSON:\n{json.dumps(app[person], indent=2)}")
 
         # Flatten source data for faster parsing
         self._fdata = dict(self.flatten(self._data))
-
-        logger.info(f"MANIFEST ITEMS:\n{json.dumps(self._fdata, indent=2)}")
 
     def __iter__(self):
         """Iterate on the rules and items, yielding only those which match."""
         for rule in self._rules:
             for path, value in self._fdata.items():
-                # logger.info('')
-                # logger.info(f"SOURCE: {rule.get('source')}")
-                # logger.info(f"PATH__: {path}")
-                # if rule.get('source') == path:
                 if bool(re.match(rule.get('source'), path)):
-                    # logger.info(f'MATCHED: {rule.get("target")} <> {path} <> {value}')
-                    # logger.info(f'MATCHED: {rule.get("target")} <> {value}')
                     yield rule.get('target'), value
 
     # Static methods
@@ -125,18 +115,14 @@ class JSONManifest:
 
             if isinstance(cdata, dict):
                 for key, value in cdata.items():
-                    # logger.info(f"KEYS: {keys + [key]}")
                     yield from iter_child(value, keys + [key])
 
             elif isinstance(cdata, list):
-                # logger.info(f"CDATA:\n{json.dumps(cdata, indent=2)}")
                 for idx, value in enumerate(cdata):
                     key = f'{keys[-1]}[{str(idx)}]'
-                    # logger.info(f"KEY: {key}")
                     yield from iter_child(value, keys[:-1] + [key])
 
             else:
-                # logger.info(f"__KEY__: {'.'.join(keys)}")
                 yield '.'.join(keys), cdata
 
         yield from iter_child(data, ['$'])
@@ -320,19 +306,14 @@ class JSONFactory:
                     )
                     for s in query[2:-1].split('&&')
                 ]
-                logger.info(f"CONDITIONS: {conditions}")
 
                 if key not in reference:
                     reference[key] = []
-
-                logger.info(f"REFERENCE KEY: {reference[key]}")
 
                 indices = []
                 for i, ele in enumerate(reference[key]):
                     if all(ele.get(k) == v for k, v in conditions):
                         indices.append(i)
-
-                logger.info(f"INDICES: {indices}")
 
                 if index is not None:
                     rlen = len(indices)
@@ -386,8 +367,6 @@ class JSONFactory:
     def __init__(self, manifest: JSONManifest):
         self._manifest = manifest
 
-        # logger.info(f"JSON MANIFEST:\n{json.dumps(self._manifest.items, indent=2)}")
-
     # Instance methods
     def get_projection(self):
         """Generate the projection for the given manifest.
@@ -404,14 +383,11 @@ class JSONFactory:
             # Prioritize non-queries before queries
             if '?' in path:
                 queries.append((path, value))
-                logger.info(f"PATH, VALUE: {path} | {value}")
                 continue
 
-            logger.info(f"PATH, VALUE, RECORD: {path} | {value} | {record}")
             self.insert_value(path, value, record)
 
         for path, value in queries:
-            logger.info(f"QUERY PATH, VALUE: {path} | {value}")
             self.insert_query(path, value, record)
 
         return record

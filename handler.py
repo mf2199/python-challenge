@@ -85,16 +85,6 @@ def main(event, context=None):  # pylint: disable=unused-argument
             'Generated projection: %s', json.dumps(projection, indent=2)
         )
 
-        # new_reports = projection.get('reports', [])
-        # for report in new_reports:
-        #     if report["title"] == "Residences Report":
-        #         unique_residences = {}
-        #         for residence in report["residences"]:
-        #             key = frozenset((k, v) for k, v in residence.items())
-        #             unique_residences[key] = residence
-        #         report["residences"] = [r for r in unique_residences.values()]
-        # reports.extend(new_reports)
-
         reports.extend(projection.get('reports', []))
 
     # Reformat report output and return
