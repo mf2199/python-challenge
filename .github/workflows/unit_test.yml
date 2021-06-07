@@ -2,7 +2,7 @@ name: Tests Runner
 
 # Run this workflow every time a new commit pushed to the repository
 on:
-  pull-request:
+  pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
